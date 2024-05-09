@@ -15,7 +15,7 @@ m = 1000  # [kg]
 F_g = m * g
 
 # PID constants
-K_p_x = 10000
+K_p_x = 8000
 K_d_x = 6000
 K_i_x = 1
 
