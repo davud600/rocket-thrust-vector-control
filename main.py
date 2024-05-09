@@ -17,28 +17,57 @@ F_g = m * g
 # Rocket
 x_i = 40
 y_i = 0
+v_x_i = 0
 v_y_i = 0
-F_y_r = 10000
 
-x = np.ones(len(t)) * x_i
-y = np.ones(len(t)) * y_i
+x1 = np.ones(len(t)) * x_i
+y1 = np.ones(len(t)) * y_i
+x2 = np.zeros(len(t))
+y2 = np.zeros(len(t))
+x3 = np.zeros(len(t))
+y3 = np.zeros(len(t))
+v_x = np.zeros(len(t))
 v_y = np.zeros(len(t))
+a_x = np.zeros(len(t))
 a_y = np.zeros(len(t))
 
 for i in range(len(t)):
     prev_a_y = a_y[i - 1] if i > 1 else 0
     prev_v_y = v_y[i - 1] if i > 1 else v_y_i
-    prev_y = y[i - 1] if i > 1 else y_i
+    prev_y = y1[i - 1] if i > 1 else y_i
+    
+    prev_a_x = a_x[i - 1] if i > 1 else 0
+    prev_v_x = v_x[i - 1] if i > 1 else v_x_i
+    prev_x = x1[i - 1] if i > 1 else x_i
 
-    F_y_net = F_y_r + F_g
-    a_y[i] = F_y_net / m
+    F_y = 11500
+    F_x = 0
+
+    # Force Y component
+    F_net_y = F_y + F_g
+    a_y[i] = F_net_y / m
     v_y[i] = prev_v_y + ((prev_a_y + a_y[i]) / 2) * dt
-    y[i] = prev_y + ((prev_v_y + v_y[i]) / 2) * dt
+    y1[i] = prev_y + ((prev_v_y + v_y[i]) / 2) * dt
+    
+    # Force X component
+    F_net_x = F_x
+    a_x[i] = F_net_x / m
+    v_x[i] = prev_v_x + ((prev_a_x + a_x[i]) / 2) * dt
+    x1[i] = prev_x + ((prev_v_x + v_x[i]) / 2) * dt
 
-    if y[i] <= 0:
-        y[i] = 0
+    if y1[i] <= 0:
+        y1[i] = 0
 
-print(y)
+    omega = np.arccos(F_net_x / np.sqrt(np.power(F_net_x, 2) + np.power(F_net_y, 2)))
+    r = 10
+    n = F_net_y * 0.005
+    alpha = omega
+
+    x2[i] = r * np.cos(alpha) + x1[i]
+    y2[i] = r * np.sin(alpha) + y1[i]
+    
+    x3[i] = -n * np.cos(alpha) + x1[i]
+    y3[i] = -n * np.sin(alpha) + y1[i]
 
 
 ############### Animation ###############
@@ -46,10 +75,12 @@ frame_amount = len(t)
 
 
 def update_plot(num):
-    rocket.set_data([x[num], x[num]], [y[num] - 1, y[num] + 10 - 1])
+    # rocket.set_data([x[num], x[num]], [y[num] + 1, y[num] + 10 - 1])
+    rocket.set_data([x1[num], x2[num]], [y1[num], y2[num]])
+    rocket_thrust_trace.set_data([x1[num], x3[num]], [y1[num], y3[num]])
     vert_vel.set_data(t[0:num], v_y[0:num])
 
-    return rocket, vert_vel
+    return rocket, vert_vel, rocket_thrust_trace
 
 
 fig = plt.figure(figsize=(16, 9), dpi=80, facecolor=(0.8, 0.8, 0.8))
@@ -78,8 +109,8 @@ plt.grid(True)
 
 # Rocket
 rocket, = ax0.plot(
-    [x_i, x_i], [y_i - 1, y_i + 10 - 1], 'black', linewidth=10)
-rocket_thrust_trace, = ax0.plot([x_i, x_i], [y_i, y_i], 'orange', linewidth=2)
+    [x_i, x_i], [y_i + 1, y_i + 10 - 1], 'black', linewidth=10)
+rocket_thrust_trace, = ax0.plot([0, 0], [0, 0], 'orange', linewidth=2)
 
 
 # subplot 1
