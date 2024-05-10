@@ -73,6 +73,9 @@ for i in range(len(t)):
     prev_e_y = e_y[i - 1] if i > 1 else 0
     prev_e_y_int = e_y_int[i - 1] if i > 1 else 0
 
+    prev_F_x = F_x_arr[i - 1] if i > 1 else 0
+    prev_F_y = F_y_arr[i - 1] if i > 1 else 0
+
     # -- PID Controller -- start
 
     # Compute x comp. error
@@ -98,7 +101,8 @@ for i in range(len(t)):
         F_g_o = -F_g
 
     # Force Y component
-    F_net_y = F_y + F_g + F_g_o
+    # F_net_y = F_y + F_g + F_g_o
+    F_net_y = ((prev_F_y + F_y) / 2) + F_g + F_g_o
     a_y[i] = F_net_y / m
     v_y[i] = prev_v_y + ((prev_a_y + a_y[i]) / 2) * dt
     y1[i] = prev_y + ((prev_v_y + v_y[i]) / 2) * dt
@@ -110,7 +114,8 @@ for i in range(len(t)):
         y1[i] = 0
 
     # Force X component
-    F_net_x = F_x
+    # F_net_x = F_x
+    F_net_x = (prev_F_x + F_x) / 2
     a_x[i] = F_net_x / m
     v_x[i] = prev_v_x + ((prev_a_x + a_x[i]) / 2) * dt
     x1[i] = prev_x + ((prev_v_x + v_x[i]) / 2) * dt
@@ -187,7 +192,7 @@ reference_point, = ax0.plot([0, 0], [0, 0], 'green', linewidth=3)
 # subplot 1
 ax1 = fig.add_subplot(gs[0, 1], facecolor=(0.9, 0.9, 0.9))
 ax1_x_lim = t_end
-ax1_y_lim = 100
+ax1_y_lim = 60
 plt.xlim(0, ax1_x_lim)
 plt.ylim(-ax1_y_lim, ax1_y_lim)
 plt.grid(True)
@@ -201,7 +206,7 @@ plt.legend(loc='lower right', fontsize='small')
 # subplot 2
 ax2 = fig.add_subplot(gs[1, 1], facecolor=(0.9, 0.9, 0.9))
 ax2_x_lim = t_end
-ax2_y_lim = 100
+ax2_y_lim = 60
 plt.xlim(0, ax2_x_lim)
 plt.ylim(-ax2_y_lim, ax2_y_lim)
 plt.grid(True)
