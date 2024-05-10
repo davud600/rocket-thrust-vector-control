@@ -62,37 +62,39 @@ for i in range(len(t)):
     prev_a_y = a_y[i - 1] if i > 1 else 0
     prev_v_y = v_y[i - 1] if i > 1 else v_y_i
     prev_y = y1[i - 1] if i > 1 else y_i
-    
+
     prev_a_x = a_x[i - 1] if i > 1 else 0
     prev_v_x = v_x[i - 1] if i > 1 else v_x_i
     prev_x = x1[i - 1] if i > 1 else x_i
 
     prev_e_x = e_x[i - 1] if i > 1 else 0
     prev_e_x_int = e_x_int[i - 1] if i > 1 else 0
-    
+
     prev_e_y = e_y[i - 1] if i > 1 else 0
     prev_e_y_int = e_y_int[i - 1] if i > 1 else 0
 
     # -- PID Controller -- start
-    
+
     # Compute x comp. error
     e_x[i] = x_ref - prev_x
     e_x_dot[i] = (e_x[i] - prev_e_x) / dt
     e_x_int[i] = prev_e_x_int + (prev_e_x + e_x[i]) / 2 * dt
-    
+
     # Compute y comp. error
     e_y[i] = y_ref - prev_y
     e_y_dot[i] = (e_y[i] - prev_e_y) / dt
     e_y_int[i] = prev_e_y_int + (prev_e_y + e_y[i]) / 2 * dt
 
-    F_x = max(MIN_X_FORCE, min(MAX_X_FORCE, K_p_x * e_x[i-1] + K_d_x * e_x_dot[i-1] + K_i_x * e_x_int[i-1]))
-    F_y = max(MIN_Y_FORCE, min(MAX_Y_FORCE, K_p_y * e_y[i-1] + K_d_y * e_y_dot[i-1] + K_i_y * e_y_int[i-1]))
+    F_x = max(MIN_X_FORCE, min(MAX_X_FORCE, K_p_x *
+              e_x[i-1] + K_d_x * e_x_dot[i-1] + K_i_x * e_x_int[i-1]))
+    F_y = max(MIN_Y_FORCE, min(MAX_Y_FORCE, K_p_y *
+              e_y[i-1] + K_d_y * e_y_dot[i-1] + K_i_y * e_y_int[i-1]))
 
     # -- PID Controller -- end
-    
+
     # Opposite force of gravity (when resting on surface)
-    F_g_o = 0 
-    if y1[i] <= 0:
+    F_g_o = 0
+    if y1[i] < 0:
         F_g_o = -F_g
 
     # Force Y component
@@ -102,25 +104,26 @@ for i in range(len(t)):
     y1[i] = prev_y + ((prev_v_y + v_y[i]) / 2) * dt
 
     # Surface constraint
-    if y1[i] <= 0:
+    if y1[i] < 0:
         a_y[i] = 0
         v_y[i] = 0
         y1[i] = 0
-    
+
     # Force X component
     F_net_x = F_x
     a_x[i] = F_net_x / m
     v_x[i] = prev_v_x + ((prev_a_x + a_x[i]) / 2) * dt
     x1[i] = prev_x + ((prev_v_x + v_x[i]) / 2) * dt
 
-    omega = np.arccos(F_net_x / np.sqrt(np.power(F_net_x, 2) + np.power(F_net_y, 2)))
+    omega = np.arccos(
+        F_net_x / np.sqrt(np.power(F_net_x, 2) + np.power(F_net_y, 2)))
     r = 10
     n = np.sqrt(np.power(F_x, 2) + np.power(F_y, 2)) * 0.001
     alpha = omega
 
     x2[i] = r * np.cos(alpha) + x1[i]
     y2[i] = r * np.sin(alpha) + y1[i]
-    
+
     x3[i] = -n * np.cos(alpha) + x1[i]
     y3[i] = -n * np.sin(alpha) + y1[i]
 
@@ -137,7 +140,7 @@ def update_plot(num):
     rocket.set_data([x1[num], x2[num]], [y1[num], y2[num]])
     rocket_thrust_trace.set_data([x1[num], x3[num]], [y1[num], y3[num]])
     reference_point.set_data([x_ref - 2, x_ref + 2], [y_ref, y_ref])
-    
+
     hori_acc.set_data(t[0:num], a_x[0:num])
     vert_acc.set_data(t[0:num], a_y[0:num])
     hori_vel.set_data(t[0:num], v_x[0:num])
@@ -188,8 +191,10 @@ ax1_y_lim = 100
 plt.xlim(0, ax1_x_lim)
 plt.ylim(-ax1_y_lim, ax1_y_lim)
 plt.grid(True)
-hori_acc, = ax1.plot([], [], 'purple', linewidth=2, label='X Acceleration [m/s^2]')
-vert_acc, = ax1.plot([], [], 'green', linewidth=2, label='Y Acceleration [m/s^2]')
+hori_acc, = ax1.plot([], [], 'purple', linewidth=2,
+                     label='X Acceleration [m/s^2]')
+vert_acc, = ax1.plot([], [], 'green', linewidth=2,
+                     label='Y Acceleration [m/s^2]')
 plt.legend(loc='lower right', fontsize='small')
 
 
